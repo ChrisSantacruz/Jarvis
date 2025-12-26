@@ -43,12 +43,18 @@ export function alexaPlainText(
   text: string,
   shouldEndSession: boolean = false,
 ): any {
+  // Asegurar que el texto no sea null/undefined y limpiar caracteres problemáticos
+  const cleanText = (text || '').toString().trim();
+  
+  // Si el texto está vacío después de limpiar, usar un mensaje por defecto
+  const finalText = cleanText || 'No se pudo generar una respuesta.';
+
   return {
     version: '1.0',
     response: {
       outputSpeech: {
         type: 'PlainText',
-        text: text,
+        text: finalText,
       },
       shouldEndSession,
     },
