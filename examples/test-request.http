@@ -1,0 +1,48 @@
+### Health Check
+POST http://localhost:3000/jarvis/health
+Content-Type: application/json
+
+###
+
+### Pregunta simple a JARVIS
+POST http://localhost:3000/jarvis/ask
+Content-Type: application/json
+
+{
+  "question": "Explica cómo funciona un sistema de autenticación JWT"
+}
+
+###
+
+### Pregunta técnica sobre arquitectura
+POST http://localhost:3000/jarvis/ask
+Content-Type: application/json
+
+{
+  "question": "¿Cuál es la diferencia entre REST y GraphQL? ¿Cuándo debería usar cada uno?"
+}
+
+###
+
+### Pregunta con contexto de conversación
+POST http://localhost:3000/jarvis/ask
+Content-Type: application/json
+
+{
+  "question": "Dame un ejemplo de código para implementar un middleware de autenticación en NestJS",
+  "conversationId": "conv-123",
+  "userId": "user-456"
+}
+
+###
+
+### Pregunta sobre diagramas
+POST http://localhost:3000/jarvis/ask
+Content-Type: application/json
+
+{
+  "question": "Dibuja un diagrama de flujo para un sistema de procesamiento de pagos"
+}
+
+###
+
