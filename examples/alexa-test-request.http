@@ -24,31 +24,55 @@ Content-Type: application/json
 
 ### Test Alexa Webhook - IntentRequest (AskJarvisIntent)
 # Respuesta esperada: SSML con la respuesta de JARVIS sobre inteligencia artificial
+# Formato real de Alexa (basado en request real)
 POST http://localhost:3000/alexa/webhook
 Content-Type: application/json
 
 {
   "version": "1.0",
   "session": {
+    "new": false,
     "sessionId": "amzn1.echo-api.session.test123",
     "application": {
       "applicationId": "amzn1.ask.skill.test123"
     },
-    "new": false
+    "attributes": {},
+    "user": {
+      "userId": "amzn1.ask.account.test123"
+    }
+  },
+  "context": {
+    "System": {
+      "application": {
+        "applicationId": "amzn1.ask.skill.test123"
+      },
+      "user": {
+        "userId": "amzn1.ask.account.test123"
+      },
+      "device": {
+        "deviceId": "amzn1.ask.device.test123",
+        "supportedInterfaces": {}
+      }
+    }
   },
   "request": {
     "type": "IntentRequest",
     "requestId": "amzn1.echo-api.request.test123",
+    "locale": "es-MX",
     "timestamp": "2024-01-15T10:30:00Z",
-    "locale": "es-ES",
     "intent": {
       "name": "AskJarvisIntent",
       "confirmationStatus": "NONE",
       "slots": {
         "question": {
           "name": "question",
-          "value": "qué es inteligencia artificial",
-          "confirmationStatus": "NONE"
+          "value": "inteligencia artificial",
+          "confirmationStatus": "NONE",
+          "source": "USER",
+          "slotValue": {
+            "type": "Simple",
+            "value": "inteligencia artificial"
+          }
         }
       }
     }
