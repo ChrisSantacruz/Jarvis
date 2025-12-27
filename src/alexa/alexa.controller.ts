@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Logger, HttpCode, HttpStatus } from '@nestjs/common';
 import { JarvisService } from '../jarvis/jarvis.service';
-import { alexaSpeak } from './alexa.utils';
+import { alexaSpeak, alexaImageResponse } from './alexa.utils';
 
 @Controller('alexa')
 export class AlexaController {
@@ -97,7 +97,7 @@ export class AlexaController {
 
             // La respuesta ya viene limitada y sanitizada del servicio
             let answer = jarvisResponse.answer || '';
-            
+
             // Actualizar atributos de sesión con la última pregunta y respuesta
             const updatedSessionAttributes = {
               ...sessionAttributes,
@@ -105,11 +105,23 @@ export class AlexaController {
               lastAnswer: answer,
               lastTimestamp: new Date().toISOString(),
             };
-            
-            // Devolver respuesta en formato PlainText con reprompt y atributos de sesión
+
+            // Verificar si es una respuesta con imagen
+            if (jarvisResponse.isImageResponse && jarvisResponse.imageUrl) {
+              this.logger.log(`Respondiendo con imagen: ${jarvisResponse.imageUrl}`);
+              const alexaResponse = alexaImageResponse(
+                answer,
+                jarvisResponse.imageUrl,
+                updatedSessionAttributes,
+              );
+              this.logger.debug(`Respuesta con imagen a enviar a Alexa: ${JSON.stringify(alexaResponse)}`);
+              return alexaResponse;
+            }
+
+            // Devolver respuesta normal con voz
             const alexaResponse = alexaSpeak(answer, false, updatedSessionAttributes);
             this.logger.debug(`Respuesta a enviar a Alexa: ${JSON.stringify(alexaResponse)}`);
-            
+
             return alexaResponse;
           } catch (error) {
             this.logger.error(`Error al procesar pregunta: ${error.message}`, error.stack);

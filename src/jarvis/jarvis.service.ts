@@ -101,6 +101,45 @@ export class JarvisService {
   }
 
   /**
+   * Detecta si el usuario quiere ver una imagen
+   * @param question - Pregunta del usuario
+   * @returns true si quiere imagen, false en caso contrario
+   */
+  private wantsImage(question: string): boolean {
+    const q = question.toLowerCase();
+    return (
+      q.includes('imagen') ||
+      q.includes('foto') ||
+      q.includes('muéstrame') ||
+      q.includes('muestrame') ||
+      q.includes('ver una imagen') ||
+      q.includes('muestra') ||
+      q.includes('visualiza') ||
+      q.includes('dibujo')
+    );
+  }
+
+  /**
+   * Extrae la consulta de imagen de la pregunta del usuario
+   * @param question - Pregunta del usuario
+   * @returns Consulta limpia para buscar imagen
+   */
+  private extractImageQuery(question: string): string {
+    return question
+      .replace(/mu[eé]strame|imagen|foto|una|un|de|ver|visualiza|dibujo|muestra/gi, '')
+      .trim();
+  }
+
+  /**
+   * Genera URL de imagen usando Unsplash Source
+   * @param query - Consulta para buscar imagen
+   * @returns URL de imagen
+   */
+  private imageUrlFor(query: string): string {
+    return `https://source.unsplash.com/800x600/?${encodeURIComponent(query)}`;
+  }
+
+  /**
    * Normaliza la pregunta del usuario para corregir problemas de pronunciación de Alexa
    * Convierte "punto j s" → "js", "node punto j s" → "node.js", etc.
    * @param question - Pregunta a normalizar
@@ -195,6 +234,26 @@ export class JarvisService {
       const normalizedQuestion = this.normalizeQuestion(askDto.question);
       this.logger.log(`Pregunta original: ${askDto.question.substring(0, 50)}...`);
       this.logger.log(`Pregunta normalizada: ${normalizedQuestion.substring(0, 50)}...`);
+
+      // Detectar si el usuario quiere ver una imagen
+      if (this.wantsImage(normalizedQuestion)) {
+        const imageQuery = this.extractImageQuery(normalizedQuestion);
+        const imageUrl = this.imageUrlFor(imageQuery);
+
+        this.logger.log(`Solicitud de imagen detectada: ${imageQuery}`);
+
+        // Construir respuesta estructurada con imagen
+        const response: JarvisResponseDto = {
+          answer: `Aquí tienes una imagen de ${imageQuery}.`,
+          conversationId: askDto.conversationId || undefined,
+          timestamp: new Date().toISOString(),
+          model: this.model,
+          imageUrl: imageUrl,
+          isImageResponse: true,
+        };
+
+        return response;
+      }
 
       // Detectar modo de respuesta usando la pregunta normalizada
       const responseMode = this.detectResponseMode(normalizedQuestion);

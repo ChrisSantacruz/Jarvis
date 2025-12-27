@@ -28,5 +28,7 @@ export class JarvisResponseDto {
   conversationId?: string;
   timestamp: string;
   model?: string;
+  imageUrl?: string;
+  isImageResponse?: boolean;
 }
 

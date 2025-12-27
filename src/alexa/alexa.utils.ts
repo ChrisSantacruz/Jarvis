@@ -92,4 +92,55 @@ export function alexaPlainText(
 
   return response;
 }
+/**
+ * Formatea una respuesta con imagen usando APL para Echo Show
+ * @param text - Texto a decir
+ * @param imageUrl - URL de la imagen
+ * @param sessionAttributes - Atributos de sesión para mantener contexto
+ * @returns Respuesta formateada para Alexa con imagen
+ */
+export function alexaImageResponse(
+  text: string,
+  imageUrl: string,
+  sessionAttributes: any = {},
+): any {
+  // Limpiar el texto de caracteres especiales que pueden romper SSML
+  const cleanText = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 
+  return {
+    version: '1.0',
+    sessionAttributes,
+    response: {
+      outputSpeech: {
+        type: 'SSML',
+        ssml: `<speak><voice name="Andrés">${cleanText}</voice></speak>`,
+      },
+      directives: [
+        {
+          type: 'Alexa.Presentation.APL.RenderDocument',
+          document: {
+            type: 'APL',
+            version: '1.8',
+            mainTemplate: {
+              items: [
+                {
+                  type: 'Image',
+                  source: imageUrl,
+                  width: '100vw',
+                  height: '100vh',
+                  scale: 'best-fit',
+                },
+              ],
+            },
+          },
+        },
+      ],
+      shouldEndSession: true, // Terminar sesión después de mostrar imagen
+    },
+  };
+}
