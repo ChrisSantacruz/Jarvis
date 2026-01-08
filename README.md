@@ -1,320 +1,102 @@
-# JARVIS Backend
-
-Backend profesional para asistente inteligente JARVIS, diseñado para integrarse con Amazon Alexa mediante una Custom Skill.
-
-## 🎯 Características
-
-- **Arquitectura limpia y modular** con NestJS y TypeScript
-- **Integración con Groq** para modelos LLM avanzados
-- **API REST** lista para recibir solicitudes desde Alexa
-- **Personalidad definida** para JARVIS (técnica, precisa, elegante)
-- **Preparado para producción** con manejo de errores y validación
-- **Configuración flexible** mediante variables de entorno
-
-## 📋 Requisitos Previos
-
-- Node.js >= 18.x
-- npm >= 9.x o yarn >= 1.22.x
-- Cuenta de Groq con API key
-
-## 🚀 Instalación
-
-1. **Clonar o navegar al proyecto:**
-```bash
-cd jarvis
-```
-
-2. **Instalar dependencias:**
-```bash
-npm install
-```
-
-3. **Configurar variables de entorno:**
-```bash
-# Copiar el archivo de ejemplo
-cp env.example .env
-
-# Editar .env y agregar tu API key de Groq
-GROQ_API_KEY=tu_api_key_aqui
-```
-
-## ⚙️ Configuración
-
-Edita el archivo `.env` con tus valores:
-
-```env
-# Groq API Configuration
-
-# Server Configuration
-PORT=3000
-NODE_ENV=development
-
-# Model Configuration
-GROQ_MODEL=llama-3.3-70b-versatile
-GROQ_TEMPERATURE=1
-GROQ_MAX_TOKENS=1024
-GROQ_TOP_P=1
-```
-
-## 🏃 Ejecución
-
-### Desarrollo
-```bash
-npm run start:dev
-```
-
-El servidor estará disponible en `http://localhost:3000`
-
-### Producción
-```bash
-# Compilar
-npm run build
-
-# Ejecutar
-npm run start:prod
-```
-
-## 📡 API Endpoints
-
-### POST /jarvis/ask
-
-Hacer una pregunta a JARVIS.
-
-**Request:**
-```json
-{
-  "question": "Explica cómo funciona un sistema de autenticación JWT",
-  "conversationId": "optional-conversation-id",
-  "userId": "optional-user-id"
-}
-```
-
-**Response:**
-```json
-{
-  "answer": "Un sistema de autenticación JWT (JSON Web Token) funciona mediante...",
-  "conversationId": "optional-conversation-id",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "model": "llama-3.3-70b-versatile"
-}
-```
-
-**Ejemplo con cURL:**
-```bash
-curl -X POST http://localhost:3000/jarvis/ask \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "¿Cuál es la diferencia entre REST y GraphQL?"
-  }'
-```
-
-### POST /jarvis/health
-
-Health check del servicio.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "service": "JARVIS Backend",
-  "timestamp": "2024-01-15T10:30:00.000Z"
-}
-```
-
-### POST /alexa/webhook
-
-Endpoint para recibir solicitudes de Amazon Alexa.
-
-**Request (LaunchRequest):**
-```json
-{
-  "version": "1.0",
-  "session": {
-    "sessionId": "amzn1.echo-api.session.test123",
-    "application": {
-      "applicationId": "amzn1.ask.skill.test123"
-    },
-    "new": true
-  },
-  "request": {
-    "type": "LaunchRequest",
-    "requestId": "amzn1.echo-api.request.test123",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "locale": "es-ES"
-  }
-}
-```
-
-**Request (IntentRequest):**
-```json
-{
-  "version": "1.0",
-  "session": {
-    "sessionId": "amzn1.echo-api.session.test123",
-    "application": {
-      "applicationId": "amzn1.ask.skill.test123"
-    }
-  },
-  "request": {
-    "type": "IntentRequest",
-    "requestId": "amzn1.echo-api.request.test123",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "locale": "es-ES",
-    "intent": {
-      "name": "AskJarvisIntent",
-      "slots": {
-        "question": {
-          "value": "qué es inteligencia artificial"
-        }
-      }
-    }
-  }
-}
-```
-
-**Response (formato SSML requerido por Alexa):**
-```json
-{
-  "version": "1.0",
-  "response": {
-    "outputSpeech": {
-      "type": "SSML",
-      "ssml": "<speak>La inteligencia artificial es...</speak>"
-    },
-    "shouldEndSession": false
-  }
-}
-```
-
-**Nota importante:** Alexa requiere respuestas en formato SSML, no PlainText. El controlador automáticamente convierte todas las respuestas a SSML usando la función utilitaria `alexaSpeak()`.
-
-**Ejemplo con cURL:**
-```bash
-curl -X POST http://localhost:3000/alexa/webhook \
-  -H "Content-Type: application/json" \
-  -d '{
-    "version": "1.0",
-    "request": {
-      "type": "IntentRequest",
-      "intent": {
-        "name": "AskJarvisIntent",
-        "slots": {
-          "question": {
-            "value": "qué es inteligencia artificial"
-          }
-        }
-      }
-    }
-  }'
-```
-
-## 🏗️ Estructura del Proyecto
-
-```
-jarvis/
-├── src/
-│   ├── main.ts                 # Punto de entrada de la aplicación
-│   ├── app.module.ts           # Módulo raíz de NestJS
-│   ├── jarvis/
-│   │   ├── jarvis.module.ts    # Módulo de JARVIS
-│   │   ├── jarvis.controller.ts # Controlador REST
-│   │   ├── jarvis.service.ts   # Lógica de negocio
-│   │   ├── jarvis.prompt.ts    # Prompt del sistema
-│   │   └── dto/
-│   │       └── ask-jarvis.dto.ts # DTOs de request/response
-│   ├── alexa/
-│   │   ├── alexa.module.ts     # Módulo de Alexa
-│   │   ├── alexa.controller.ts # Controlador de Alexa webhook
-│   │   └── dto/
-│   │       └── alexa-request.dto.ts # DTOs de solicitudes Alexa
-├── examples/
-│   ├── test-request.http       # Ejemplos de requests REST
-│   └── alexa-test-request.http  # Ejemplos de requests Alexa
-├── env.example                 # Ejemplo de variables de entorno
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-## 🔧 Tecnologías Utilizadas
-
-- **NestJS**: Framework Node.js para aplicaciones escalables
-- **TypeScript**: Tipado estático
-- **Groq SDK**: Cliente para modelos LLM
-- **class-validator**: Validación de DTOs
-- **@nestjs/config**: Gestión de variables de entorno
-
-## 🎭 Personalidad de JARVIS
-
-JARVIS está configurado con una personalidad específica:
-
-- **Inteligente y técnico**: Respuestas precisas y estructuradas
-- **Profesional**: Tono serio y elegante
-- **Humor sutil**: Comentarios breves y elegantes cuando es apropiado
-- **Claro y conciso**: Sin relleno, preferencia por la claridad
-- **Orientado a ingeniería**: Especializado en software, arquitectura, IA, cloud
-
-## 🔮 Integraciones
-
-### ✅ Implementado
-
-- **Amazon Alexa Custom Skill**: Endpoint `/alexa/webhook` listo para recibir requests
-  - Soporta `LaunchRequest` e `IntentRequest`
-  - Integrado con el servicio JARVIS
-  - Respuestas en formato compatible con Alexa
-
-### 🚀 Próximas Integraciones
-
-- **Amazon Polly**: Síntesis de voz con voz masculina
-- **SSML**: Respuestas con formato SSML para mejor pronunciación
-- **Echo Show**: Soporte para respuestas con imágenes
-- **Contexto conversacional**: Memoria de conversación entre sesiones
-- **Autenticación**: Seguridad para endpoints públicos
-
-## 🐛 Manejo de Errores
-
-El servicio incluye:
-
-- Validación automática de DTOs
-- Manejo de errores de API de Groq
-- Logging estructurado
-- Respuestas de error claras
-
-## 📝 Scripts Disponibles
-
-```bash
-npm run build          # Compilar TypeScript
-npm run start          # Iniciar en modo producción
-npm run start:dev      # Iniciar en modo desarrollo (watch)
-npm run start:debug    # Iniciar en modo debug
-npm run lint           # Ejecutar linter
-npm run test           # Ejecutar tests
-npm run test:watch     # Tests en modo watch
-```
-
-## 🚢 Despliegue
-
-### Render
-
-1. Conecta tu repositorio a Render
-2. Configura las variables de entorno en el dashboard
-3. Render detectará automáticamente el proyecto Node.js
-
-### Railway
-
-1. Conecta tu repositorio a Railway
-2. Agrega las variables de entorno
-3. Railway construirá y desplegará automáticamente
-
-## 📄 Licencia
-
-MIT
-
-## 👨‍💻 Desarrollo
-
-Este proyecto está diseñado para ingenieros de software senior. El código está comentado y sigue las mejores prácticas de NestJS y arquitectura limpia.
-
----
-
-**JARVIS está listo para asistir.**
-
+# Jarvis
+
+Jarvis es un proyecto de Inteligencia Artificial cuyo objetivo es crear un modelo conversacional y desplegarlo como una skill para Amazon Alexa. Este repositorio contiene el código, la documentación y los recursos necesarios para el entrenamiento del modelo y la integración con la plataforma de Alexa.
+
+## Resumen del proyecto
+
+- Tipo: Proyecto de IA / Skill de Alexa
+- Objetivo: Crear un modelo de lenguaje conversacional y exponer sus capacidades como una skill para dispositivos con Alexa.
+- Componentes principales:
+  - Creación y entrenamiento del modelo de IA.
+  - Backend/API para servir la lógica de la skill.
+  - Integración y configuración de la skill en la consola de desarrolladores de Alexa.
+  - Documentación y procedimientos para despliegue.
+
+## Funcionalidades
+
+- Interacción conversacional basada en un modelo de IA entrenado.
+- Respuestas contextualizadas y manejo de diálogos simples.
+- Integración con Amazon Alexa como una skill personalizada.
+- Posible extensión para conectar con APIs externas y servicios (opcional).
+
+## Arquitectura (visión general)
+
+1. Datos y Preprocesamiento
+   - Recolección de datasets, limpieza y transformación para entrenamiento.
+2. Entrenamiento del Modelo
+   - Scripts y configuraciones para entrenar el modelo (por ejemplo, modelos basados en Transformers o RNN según la implementación).
+3. Servicio / API
+   - Servidor que expone un endpoint para recibir peticiones de la skill de Alexa y devolver respuestas generadas por el modelo.
+4. Skill de Alexa
+   - Intents y configuración en la consola de Alexa.
+   - Endpoint apuntando al backend del proyecto (AWS Lambda o HTTPS endpoint).
+5. Despliegue
+   - Opciones para desplegar backend en AWS (Lambda, EC2, Elastic Beanstalk) o en otros proveedores.
+
+## Instalación (ejemplo)
+
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/ChrisSantacruz/Jarvis.git
+   cd Jarvis
+   ```
+
+2. Crear un entorno virtual (opcional):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux / macOS
+   venv\Scripts\activate     # Windows
+   ```
+
+3. Instalar dependencias:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Configurar variables de entorno:
+   - Añadir credenciales y configuraciones necesarias (por ejemplo, credenciales de AWS, tokens, etc.) en un archivo `.env` o mediante el entorno.
+
+5. Ejecutar el servidor de desarrollo:
+   ```bash
+   python app.py
+   ```
+
+## Entrenamiento del modelo
+
+- Ubicación de los scripts: `models/` o `training/` (ajustar según estructura del repo).
+- Comando de ejemplo:
+  ```bash
+  python training/train.py --config config/train_config.yaml
+  ```
+- Describir aquí los formatos esperados de dataset y parámetros importantes.
+
+## Implementación como Skill para Alexa
+
+1. Crear una nueva Alexa Skill en la consola de desarrolladores de Amazon.
+2. Definir los Intents y el Interaction Model.
+3. Configurar el endpoint de la skill:
+   - Usar AWS Lambda (proporcionando el ARN) o un endpoint HTTPS seguro (certificado TLS válido).
+4. Mapear los intents a las rutas del backend que invoquen al modelo de IA.
+5. Probar la skill usando el simulador de la consola de Alexa o un dispositivo compatible.
+
+## Ejemplo de flujo
+
+- Usuario en Alexa: "Alexa, abre Jarvis y pregúntale por el clima."
+- Skill envía un request al endpoint del backend con el intent y la entrada de usuario.
+- Backend procesa la solicitud, llama al modelo conversacional y genera una respuesta.
+- Respuesta enviada a Alexa y reproducida al usuario.
+
+## Contribuir
+
+- Abrir issues para bugs, mejoras o ideas.
+- Para cambios importantes, crear una rama nueva y un Pull Request describiendo los cambios.
+- Seguir las buenas prácticas: pruebas, linters y documentación.
+
+## Licencia
+
+- Indicar la licencia del proyecto (por ejemplo MIT). Añadir archivo `LICENSE` si no existe.
+
+## Contacto
+
+- Mantén contacto con el mantenedor del proyecto: ChrisSantacruz
+- Para preguntas o asistencia, abre un issue en este repositorio.
